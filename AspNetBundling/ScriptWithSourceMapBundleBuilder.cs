@@ -1,5 +1,3 @@
-extern alias AjaxMin;
-using AjaxMin::Microsoft.Ajax.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,6 +5,8 @@ using System.IO;
 using System.Text;
 using System.Web;
 using System.Web.Optimization;
+using NUglify;
+using NUglify.JavaScript;
 
 namespace AspNetBundling
 {
@@ -59,11 +59,11 @@ namespace AspNetBundling
 
                     sourceMap.StartPackage(sourcePath, mapPath);
 
-                    var minifier = new Minifier();
-                    string contentMinified = minifier.MinifyJavaScript(contentConcatedString, settings);
-                    if (minifier.ErrorList.Count > 0)
+                    var result = Uglify.Js(contentConcatedString, settings);
+                    string contentMinified = result.Code;
+                    if (result.Errors.Count > 0)
                     {
-                        return GenerateMinifierErrorsContent(contentConcatedString, minifier);
+                        return GenerateMinifierErrorsContent(contentConcatedString, result);
                     }
 
                     contentWriter.Write(contentMinified);
@@ -112,12 +112,12 @@ namespace AspNetBundling
             return sbContent.ToString();
         }
 
-        private static string GenerateMinifierErrorsContent(string contentConcatedString, Minifier minifier)
+        private static string GenerateMinifierErrorsContent(string contentConcatedString, UglifyResult result)
         {
             var sbContent = new StringBuilder();
             sbContent.Append("/* ");
             sbContent.Append("An error occurred during minification, see errors below - returning concatenated content unminified.").Append("\r\n");
-            foreach (var error in minifier.ErrorList)
+            foreach (var error in result.Errors)
             {
                 sbContent.Append(error).Append("\r\n");
             }
