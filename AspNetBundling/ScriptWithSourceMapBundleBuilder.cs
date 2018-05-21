@@ -72,14 +72,6 @@ namespace AspNetBundling
                 // Write the SourceMap to another Bundle
                 AddContentToAdHocBundle(context, mapVirtualPath, mapBuilder.ToString());
 
-                // Note: A current bug in AjaxMin reported by @LodewijkSioen here https://ajaxmin.codeplex.com/workitem/21834,
-                // causes the MinifyJavascript method call to hang when debugger is attached if the following line is included.
-                // To avoid more harm than good, don't support source mapping in this scenario until AjaxMin fixes it's bug.
-                if (System.Diagnostics.Debugger.IsAttached)
-                {
-                    contentBuilder.Insert(0, sourceMappingDisabledMsg + "\r\n\r\n\r\n");
-                }
-
                 return contentBuilder.ToString();
             }
             catch (Exception ex)
@@ -145,14 +137,6 @@ namespace AspNetBundling
                     AddContentToAdHocBundle(context, virtualPathTransformed, contents);
                 }
 
-                // Source header line then source code
-                // Note: A current bug in AjaxMin reported by @LodewijkSioen here https://ajaxmin.codeplex.com/workitem/21834,
-                // causes the MinifyJavascript method call to hang when debugger is attached if the following line is included.
-                // To avoid more harm than good, don't support proper source mapping in this scenario until AjaxMin fixes its bug.
-                if (!System.Diagnostics.Debugger.IsAttached)
-                {
-                    contentConcated.AppendLine("///#source 1 1 " + file.VirtualFile.VirtualPath);
-                }
                 contentConcated.AppendLine(contents);
             }
 
@@ -173,19 +157,8 @@ namespace AspNetBundling
                 throw new InvalidOperationException(string.Format("There is a bundle on the VirtualPath '{0}' of the type '{1}' when it was expected to be of the type 'SourceMapBundle'. That Virtual Path is reserved for the SourceMaps.", virtualPath, mapBundle.GetType()));
             }
 
-            // Note: A current bug in AjaxMin reported by @LodewijkSioen here https://ajaxmin.codeplex.com/workitem/21834,
-            // causes the MinifyJavascript method call to hang when debugger is attached if the following line is included.
-            // To avoid more harm than good, don't support source mapping in this scenario until AjaxMin fixes it's bug.
-            if (System.Diagnostics.Debugger.IsAttached)
-            {
-                correctlyCastMapBundle.SetContent(sourceMappingDisabledMsg);
-                return;
-            }
-
             correctlyCastMapBundle.SetContent(content);
         }
-
-        const string sourceMappingDisabledMsg = "/* Source mapping won't work properly right now, sorry! The debugger is attached and the following bug exists in AjaxMin: https://ajaxmin.codeplex.com/workitem/21834 */";
 
         internal bool minifyCode = false;
 
